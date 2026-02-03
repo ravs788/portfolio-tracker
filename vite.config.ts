@@ -14,10 +14,17 @@ export default defineConfig({
         // Group heavy dependencies into their own chunks to improve caching and reduce initial load
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('recharts')) return 'vendor-charts';
-            if (id.includes('@mui') || id.includes('@emotion')) return 'vendor-mui';
-            if (id.includes('date-fns')) return 'vendor-date-fns';
-            if (id.includes('react')) return 'vendor-react';
+            const path = id.replace(/\\/g, '/');
+            // Keep React core and libraries that expect the React namespace together.
+            // This avoids cases where CJS shims (e.g., use-sync-external-store) evaluate
+            // React.useState while React is in a different async chunk, leading to
+            // "Cannot read properties of undefined (reading 'useState')".
+            if (/(^|\/)node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|use-sync-external-store|zustand)(\/|$)/.test(path)) {
+              return 'vendor-react';
+            }
+            if (/node_modules\/recharts\//.test(path)) return 'vendor-charts';
+            if (/node_modules\/(@mui|@emotion)\//.test(path)) return 'vendor-mui';
+            if (/node_modules\/date-fns\//.test(path)) return 'vendor-date-fns';
             return 'vendor';
           }
         },
