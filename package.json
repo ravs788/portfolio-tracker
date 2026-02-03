@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "start": "node server.js",
-    "heroku-postbuild": "npm ci --include=dev && npm run build"
+    "heroku-postbuild": "npm install --include=dev && npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
