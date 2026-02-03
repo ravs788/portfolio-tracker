@@ -17,8 +17,8 @@ app.use(
   })
 );
 
-// SPA fallback: send index.html for all non-file routes
-app.get("*", (req, res) => {
+ // SPA fallback: send index.html for all non-file routes (Express 5 requires '/*' not '*')
+app.get("/*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
