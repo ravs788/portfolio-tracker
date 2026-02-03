@@ -9,6 +9,13 @@ import InputLabel from '@mui/material/InputLabel';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { PlanInputSchema, type PlanInput } from '../schemas';
@@ -558,6 +565,69 @@ const Landing: React.FC = () => {
             The CSV supports multiple row types with a "type" column: settings, income, monthlyExpense, bigExpense, loan, investment, sip.
             Only relevant columns are required per row. Download the template for examples.
           </Typography>
+        </Box>
+
+        {/* ---------- HOW TO USE GUIDE ---------- */}
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            How to Use This Application
+          </Typography>
+
+          {/* Visual workflow with steppers */}
+          <Box sx={{ mt: 2 }}>
+            {/* Central steppers could be rendered here if desired; each accordion also contains its own flow now. */}
+          </Box>
+
+          {/* Fill Manually */}
+          <Accordion disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} id="manual-header" aria-controls="manual-content">
+              <Typography variant="subtitle1">1. Fill Manually</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stepper orientation="vertical" activeStep={-1} sx={{ mb: 1 }}>
+                {['Choose “Fill Manually”', 'Click Continue to open wizard', 'Complete all wizard steps', 'Press Calculate to view results'].map(label => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+              <Typography variant="body2" color="text.secondary">Open the wizard, complete steps, then Calculate to view results.</Typography>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Import CSV */}
+          <Accordion disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} id="csv-header" aria-controls="csv-content">
+              <Typography variant="subtitle1">2. Import CSV</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stepper orientation="vertical" activeStep={-1} sx={{ mb: 1 }}>
+                {['Download CSV Template', 'Edit in spreadsheet', 'Save as UTF-8 CSV', 'Choose CSV File to upload', 'View results'].map(label => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+              <Typography variant="body2" color="text.secondary">Download template, edit and save as CSV, then upload to auto‑fill and view results.</Typography>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Import JSON */}
+          <Accordion disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} id="json-header" aria-controls="json-content">
+              <Typography variant="subtitle1">3. Import JSON</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stepper orientation="vertical" activeStep={-1} sx={{ mb: 1 }}>
+                {['Export or prepare JSON', 'Choose JSON File', 'View results'].map(label => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+              <Typography variant="body2" color="text.secondary">Import a previously exported JSON to instantly load your plan.</Typography>
+            </AccordionDetails>
+          </Accordion>
         </Box>
       </Paper>
     </Box>
