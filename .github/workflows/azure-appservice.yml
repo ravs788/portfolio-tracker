@@ -36,7 +36,6 @@ jobs:
       cancel-in-progress: true
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -52,16 +51,8 @@ jobs:
       # - name: Run tests
       #   run: npm test --if-present
 
-      - name: Azure login (Publish Profile)
-        uses: azure/login@v2
-        with:
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 
-      - name: Stop Web App (avoid 409 during Zip Deploy)
-        run: az webapp stop --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.AZURE_RG_NAME }}
 
-      - name: Wait for site to stop
-        run: sleep 10
 
       - name: Zip Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
@@ -84,8 +75,6 @@ jobs:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
 
-      - name: Start Web App
-        run: az webapp start --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.AZURE_RG_NAME }}
 
       - name: Post-deploy info
         run: |
