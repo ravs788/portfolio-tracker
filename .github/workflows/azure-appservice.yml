@@ -24,12 +24,16 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: mytestApp12893021   # <-- CHANGE THIS to your Web App name (e.g., portfolio-tracker-prod)
+  AZURE_WEBAPP_NAME: mytestApp12893021
   NODE_VERSION: "20.x"
+  AZURE_RG_NAME: rg-new
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    concurrency:
+      group: zipdeploy-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     permissions:
       contents: read
       id-token: write
@@ -48,12 +52,40 @@ jobs:
       # - name: Run tests
       #   run: npm test --if-present
 
-      - name: Deploy to Azure Web App (Zip Deploy; build runs on Azure with Oryx)
+      - name: Azure login (Publish Profile)
+        uses: azure/login@v2
+        with:
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
+      - name: Stop Web App (avoid 409 during Zip Deploy)
+        run: az webapp stop --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.AZURE_RG_NAME }}
+
+      - name: Wait for site to stop
+        run: sleep 10
+
+      - name: Zip Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .  # Deploy the repo; Azure will run npm install + npm run build server-side when SCM_DO_BUILD_DURING_DEPLOYMENT=true
+          package: .
+
+      - name: Wait and retry Zip Deploy if previous step failed (possible 409)
+        if: failure()
+        run: |
+          echo "Retrying deploy after 15s due to previous failure (likely 409 conflict)..."
+          sleep 15
+
+      - name: Zip Deploy retry
+        if: failure()
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
+
+      - name: Start Web App
+        run: az webapp start --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.AZURE_RG_NAME }}
 
       - name: Post-deploy info
         run: |

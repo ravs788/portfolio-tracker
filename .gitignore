@@ -68,3 +68,8 @@ test-results/
 *.local
 
 tools/
+
+# Azure publish profiles (secrets - do not commit)
+*.PublishSettings
+*.publishsettings
+*.publishsettings.backup

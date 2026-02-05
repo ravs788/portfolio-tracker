@@ -86,3 +86,39 @@ Notes
 - The ARM template sets the app settings required for server-side build (Oryx) and Node version.
 - WEBAPP_NAME must be globally unique; pick something like joint-portfolio-planner-xyz.
 - If you change SKU or enable/disable App Insights, update azuredeploy.parameters.json accordingly.
+
+## Troubleshooting: Zip Deploy 409 Conflict
+
+Why this happens
+- Another deployment is already in progress, or Kudu (ZipDeploy) is holding a lock on the site.
+
+Mitigations
+- The GitHub Actions workflow in this repo now:
+  - Logs in with the publish profile
+  - Stops the Web App before Zip Deploy
+  - Retries once on failure
+  - Starts the Web App after deployment
+- If you need to do it manually via CLI:
+
+  az webapp stop --name <YOUR_WEBAPP_NAME> --resource-group rg-new
+  # wait ~10–20 seconds
+  az webapp start --name <YOUR_WEBAPP_NAME> --resource-group rg-new
+
+Portal steps
+- App Service → Deployment Center → Cancel/stop any active deployment.
+- App Service → Overview → Stop; wait ~10–20 seconds; Start.
+- Re-run the GitHub Actions workflow.
+
+Ensure only one run at a time
+- The workflow uses a concurrency guard to prevent overlapping deployments on the same branch/ref.
+
+Secret hygiene (Publish Profile)
+- Never commit .PublishSettings files. This repo ignores them via .gitignore.
+- If a publish profile was committed at any point:
+  1) Remove the file from the repo and push:
+     git rm --cached infra/azure/<file>.PublishSettings
+     git commit -m "Remove publish profile"
+     git push
+  2) Rotate the publish profile in Azure Portal (Web App → Get publish profile → Reset publish profile).
+  3) Update the GitHub secret AZURE_WEBAPP_PUBLISH_PROFILE with the new XML.
+  4) (Optional) Purge from history using GitHub’s “Remove sensitive data” guidance or tools like git filter-repo/BFG.
