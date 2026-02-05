@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "webAppName": {
+      "value": "mytestApp12893021"
+    },
+    "enableAppInsights": {
+      "value": true
+    },
+    "skuName": {
+      "value": "B1"
+    },
+    "skuTier": {
+      "value": "Basic"
+    },
+    "skuSize": {
+      "value": "B1"
+    },
+    "skuCapacity": {
+      "value": 1
+    },
+    "linuxFxVersion": {
+      "value": "NODE|20-lts"
+    },
+    "websiteNodeVersion": {
+      "value": "20"
+    },
+    "alwaysOn": {
+      "value": true
+    }
+  }
+}

@@ -1,0 +1,60 @@
+# Deploy Node/React (Vite) app to Azure App Service (Linux) using Publish Profile
+# - This workflow ZipDeploys the repository to Azure.
+# - Azure (Kudu/Oryx) will run the server-side build if SCM_DO_BUILD_DURING_DEPLOYMENT=true is set in App Settings.
+# - Ensure your app has a start script (package.json -> "start": "node server.js") and a build script ("build": "...").
+#
+# Required setup:
+# 1) Create an Azure Web App (Linux, Node 20 LTS). Note the Web App name.
+# 2) In Azure Portal -> Web App -> Get publish profile. Copy its XML content.
+# 3) In GitHub repo -> Settings -> Secrets and variables -> Actions -> New Repository Secret:
+#    Name: AZURE_WEBAPP_PUBLISH_PROFILE
+#    Value: (paste the publish profile XML)
+# 4) In Azure Portal -> Web App -> Configuration -> Application settings, add:
+#    - SCM_DO_BUILD_DURING_DEPLOYMENT = true
+#    - WEBSITE_NODE_DEFAULT_VERSION   = 20
+#    (Save + Restart)
+#
+# After that, update AZURE_WEBAPP_NAME below and push to main; this workflow will deploy.
+
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: mytestApp12893021   # <-- CHANGE THIS to your Web App name (e.g., portfolio-tracker-prod)
+  NODE_VERSION: "20.x"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      # Optional: run CI (lint/tests). Azure will build on the server via Oryx, so this is not required for deployment.
+      # - name: Set up Node
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: ${{ env.NODE_VERSION }}
+      #     cache: "npm"
+      # - name: Install deps
+      #   run: npm ci
+      # - name: Run tests
+      #   run: npm test --if-present
+
+      - name: Deploy to Azure Web App (Zip Deploy; build runs on Azure with Oryx)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .  # Deploy the repo; Azure will run npm install + npm run build server-side when SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+      - name: Post-deploy info
+        run: |
+          echo "Deployed to: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
